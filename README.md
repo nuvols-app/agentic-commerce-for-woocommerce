@@ -39,6 +39,8 @@ That's it. Your store is now AI-discoverable.
 - Business profile and discovery responses
 - Analytics dashboard
 - Spec version compliance
+- Marketing consent labels shown to shoppers at agent checkout
+- Seller-backed payment options (gift cards, store credit, saved cards, points)
 
 **Handled by the plugin (on your server):**
 - One-click connection to nuvols.app
@@ -46,6 +48,32 @@ That's it. Your store is now AI-discoverable.
 - Per-product AI commerce toggle
 - Google Shopping feed rewriting
 - Discovery profile at `/.well-known/ucp`
+- Discount code resolution — AI-proposed codes are matched against your WooCommerce coupons and applied to the cart
+- Marketing consent forwarded to a WordPress action hook so your newsletter plugin can subscribe the shopper
+- Deep-link admin cards that open the nuvols.app dashboard for marketing-consent and seller-backed-payment configuration
+
+## Developer Hooks
+
+### Marketing consent
+
+When a shopper opts into marketing at AI-agent checkout, the plugin fires one action per consent entry during order creation:
+
+```php
+do_action( 'nuvols_ac_marketing_consent_given', string $channel, bool $opted_in, int $order_id, WC_Order $order );
+```
+
+Wire this into your mailing-list integration (Mailchimp, MailPoet, Klaviyo, etc.):
+
+```php
+add_action( 'nuvols_ac_marketing_consent_given', function ( $channel, $opted_in, $order_id, $order ) {
+    if ( ! $opted_in ) {
+        return;
+    }
+    // Subscribe $order->get_billing_email() to your newsletter list
+}, 10, 4 );
+```
+
+`$channel` identifies which opt-in was accepted (e.g. `marketing`, `newsletter`) as configured on the nuvols.app dashboard.
 
 ## Documentation
 
